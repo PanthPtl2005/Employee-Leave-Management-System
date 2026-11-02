@@ -18,8 +18,8 @@ Each employee starts with 20 annual, 10 sick, and 5 personal leave days.
 Pending requests reserve days; approved requests use them. The program saves
 after employee and request changes.
 
-Run the basic balance test with:
+Run the tests with pytest:
 
 ```text
-python3 -m unittest
+python3 -m pytest
 ```
