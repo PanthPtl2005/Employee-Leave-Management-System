@@ -18,6 +18,9 @@ Each employee starts with 20 annual, 10 sick, and 5 personal leave days.
 Pending requests reserve days; approved requests use them. The program saves
 after employee and request changes.
 
+Use menu option 4 to edit a pending request's leave type and dates. Approved
+requests cannot be edited.
+
 Run the tests with pytest:
 
 ```text

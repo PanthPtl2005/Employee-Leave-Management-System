@@ -96,6 +96,58 @@ def approve_leave(data):
     print("Pending request not found.")
 
 
+def edit_leave_request(data):
+    show_requests(data, pending_only=True)
+    request_id = input("Pending request number to edit: ").strip()
+    request = next(
+        (
+            item
+            for item in data["requests"]
+            if str(item["id"]) == request_id and item["status"] == "pending"
+        ),
+        None,
+    )
+    if request is None:
+        print("Pending request not found.")
+        return
+
+    leave_type = input("New leave type (annual, sick, personal): ").strip().lower()
+    if leave_type not in ALLOWANCES:
+        print("Please choose annual, sick, or personal.")
+        return
+
+    try:
+        start_text = input("New start date (YYYY-MM-DD): ").strip()
+        end_text = input("New end date (YYYY-MM-DD): ").strip()
+        start = date.fromisoformat(start_text)
+        end = date.fromisoformat(end_text)
+        if start.isoformat() != start_text or end.isoformat() != end_text:
+            raise ValueError
+        if end < start:
+            print("End date must be on or after the start date.")
+            return
+    except ValueError:
+        print("Please enter dates in YYYY-MM-DD format.")
+        return
+
+    days = (end - start).days + 1
+    available = get_balance(data, request["employee_id"])[leave_type]
+    if request["leave_type"] == leave_type:
+        available += request["days"]
+    if days > available:
+        print(f"Not enough leave. {available} {leave_type} day(s) available.")
+        return
+
+    request.update(
+        leave_type=leave_type,
+        start=start.isoformat(),
+        end=end.isoformat(),
+        days=days,
+    )
+    save_data(data)
+    print(f"Leave request #{request_id} updated.")
+
+
 def get_balance(data, employee_id):
     """Return each leave type's remaining days, including pending requests."""
     balance = ALLOWANCES.copy()
@@ -143,8 +195,9 @@ def main():
         "1": add_employee,
         "2": apply_for_leave,
         "3": approve_leave,
-        "4": check_balance,
-        "5": show_requests,
+        "4": edit_leave_request,
+        "5": check_balance,
+        "6": show_requests,
     }
 
     while True:
@@ -152,8 +205,9 @@ def main():
         print("1. Add employee")
         print("2. Apply for leave")
         print("3. Approve leave")
-        print("4. Check leave balance")
-        print("5. List leave requests")
+        print("4. Edit pending leave request")
+        print("5. Check leave balance")
+        print("6. List leave requests")
         print("0. Exit")
 
         choice = input("Choose an option: ").strip()
@@ -163,7 +217,7 @@ def main():
         if choice in actions:
             actions[choice](data)
         else:
-            print("Please choose a number from 0 to 5.")
+            print("Please choose a number from 0 to 6.")
 
 
 if __name__ == "__main__":
